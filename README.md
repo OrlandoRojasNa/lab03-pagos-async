@@ -19,7 +19,7 @@ Registro de pagos en el que la API **guarda el pago y responde de inmediato**, y
 | Servicio | Tecnología | Puerto en el equipo |
 |---|---|---|
 | `mysql` | MySQL 8.4 | 3307 (opcional, para un cliente gráfico) |
-| `rabbitmq` | RabbitMQ 4.1 + panel de administración | 5672, **15672** (panel) |
+| `rabbitmq` | RabbitMQ 4.1 + panel de administración | **15672** (panel) |
 | `api` | Node.js 22 + Express | **3000** |
 | `consumer` | Node.js 22 | — |
 
@@ -53,6 +53,8 @@ Cuando aparezcan `[api] escuchando en el puerto 3000` y `[consumidor] esperando 
 | API | http://localhost:3000/pagos |
 | Estado de la API | http://localhost:3000/salud |
 | Panel de RabbitMQ | http://localhost:15672 — usuario `guest`, clave `guest` |
+
+> **Si el puerto 15672 ya está ocupado** (por ejemplo, por el RabbitMQ del laboratorio N.º 2), apague ese entorno o publique el panel en otro puerto: `RABBITMQ_PANEL_PORT=15673 docker compose up -d --build` (en PowerShell: `$env:RABBITMQ_PANEL_PORT=15673; docker compose up -d --build`). El puerto AMQP 5672 no se publica en el equipo: la API y el consumidor llegan a RabbitMQ por la red interna de Docker.
 
 Para apagar: `docker compose down`. Para borrar también los datos y empezar de cero: `docker compose down -v`.
 

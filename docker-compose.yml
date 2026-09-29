@@ -27,8 +27,7 @@ services:
     image: rabbitmq:4.1-management-alpine
     hostname: rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672" # panel de administración: http://localhost:15672 (guest / guest)
+      - "${RABBITMQ_PANEL_PORT:-15672}:15672" # panel de administración: http://localhost:15672 (guest / guest)
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
