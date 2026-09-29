@@ -54,7 +54,7 @@ Cuando aparezcan `[api] escuchando en el puerto 3000` y `[consumidor] esperando 
 | Estado de la API | http://localhost:8000/salud |
 | Panel de RabbitMQ | http://localhost:15672 — usuario `guest`, clave `guest` |
 
-> **Si el puerto 15672 ya está ocupado** (por ejemplo, por el RabbitMQ del laboratorio N.º 2), apague ese entorno o publique el panel en otro puerto: `RABBITMQ_PANEL_PORT=15673 docker compose up -d --build` (en PowerShell: `$env:RABBITMQ_PANEL_PORT=15673; docker compose up -d --build`). El puerto AMQP 5672 no se publica en el equipo: la API y el consumidor llegan a RabbitMQ por la red interna de Docker.
+> **Si el puerto 15672 ya está ocupado** (por ejemplo, por el RabbitMQ del laboratorio N.º 2), apague ese entorno o publique el panel en otro puerto: `RABBITMQ_PANEL_PORT=15673 docker compose up -d --build` (en PowerShell: `$env:RABBITMQ_PANEL_PORT=15673; docker compose up -d --build`). Para no repetirlo en cada terminal, cree un archivo `.env` en la raíz del proyecto con la línea `RABBITMQ_PANEL_PORT=15673`; Docker Compose lo lee solo (está en `.gitignore`). El puerto AMQP 5672 no se publica en el equipo: la API y el consumidor llegan a RabbitMQ por la red interna de Docker.
 
 Para apagar: `docker compose down`. Para borrar también los datos y empezar de cero: `docker compose down -v`.
 

@@ -14,11 +14,19 @@ Obtenida con `docker compose run --rm medicion` (20 pagos seguidos, acción del 
 
 | Medida | Valor observado |
 |---|---|
-| Tiempo de respuesta de la API (media de los 20 registros) | _pendiente_ |
-| Tiempo de respuesta de la API (máximo observado) | _pendiente_ |
-| Tiempo entre el registro y el procesamiento del primer pago | _pendiente_ |
-| Tiempo entre el registro y el procesamiento del último pago | _pendiente_ |
-| Tiempo total hasta que los 20 pagos quedaron en estado PROCESADO | _pendiente_ |
+| Tiempo de respuesta de la API (media de los 20 registros) | 19,89 ms |
+| Tiempo de respuesta de la API (máximo observado) | 30,93 ms |
+| Tiempo entre el registro y el procesamiento del primer pago | 4,50 s |
+| Tiempo entre el registro y el procesamiento del último pago | 77,14 s |
+| Tiempo total hasta que los 20 pagos quedaron en estado PROCESADO | 77,52 s |
+
+Datos adicionales: tiempo mínimo de respuesta 16,14 ms; los 20 registros se respondieron en 0,40 s en total, cuando el consumidor llevaba 1 de 20 procesados. Informe: `resultados/medicion-2026-09-29T00-47-47-208Z.md`.
+
+| Evidencia | Captura |
+|---|---|
+| Los 20 registros respondidos mientras el consumidor apenas empezaba | `evidencias/medicion-envio.png` |
+| Tabla final | `evidencias/medicion-tabla.png` |
+| Log del consumidor (pagos 9 a 22 de la medición, parte superior) | `evidencias/caso1-log-consumidor.png` |
 
 ## 2. Casos del punto 9
 
@@ -36,11 +44,11 @@ Obtenida con `docker compose run --rm medicion` (20 pagos seguidos, acción del 
 
 | Medida | Acción 3–5 s | Acción 15 s |
 |---|---|---|
-| Respuesta de la API (media) | _pendiente_ | _pendiente_ |
-| Respuesta de la API (máximo) | _pendiente_ | _pendiente_ |
-| Registro → procesamiento, primer pago | _pendiente_ | _pendiente_ |
-| Registro → procesamiento, último pago | _pendiente_ | _pendiente_ |
-| Total hasta los 20 en PROCESADO | _pendiente_ | _pendiente_ |
+| Respuesta de la API (media) | 19,89 ms | _pendiente_ |
+| Respuesta de la API (máximo) | 30,93 ms | _pendiente_ |
+| Registro → procesamiento, primer pago | 4,50 s | _pendiente_ |
+| Registro → procesamiento, último pago | 77,14 s | _pendiente_ |
+| Total hasta los 20 en PROCESADO | 77,52 s | _pendiente_ |
 
 ### Caso 3 — Fallo al procesar
 
