@@ -1,0 +1,15 @@
+{
+  "name": "lab03-api",
+  "version": "1.0.0",
+  "description": "API de registro de pagos (Taller N.º 3 - Sistemas Distribuidos)",
+  "main": "src/index.js",
+  "private": true,
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.4",
+    "express": "^4.21.2",
+    "mysql2": "^3.11.5"
+  }
+}

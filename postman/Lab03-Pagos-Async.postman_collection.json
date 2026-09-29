@@ -1,0 +1,152 @@
+{
+  "info": {
+    "name": "Lab03 - Pagos asíncronos",
+    "description": "Taller N.º 3 - Sistemas Distribuidos. Ejecutar en orden: 1 registra un pago y guarda su id; 3 lo consulta de inmediato (REGISTRADO); 4 espera 10 s y lo consulta de nuevo (PROCESADO).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "pagoId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "1. Registrar pago válido",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": { "type": "text/javascript", "exec": [
+            "pm.collectionVariables.set('referencia', 'PAG-' + Date.now());"
+          ] }
+        },
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [
+            "const body = pm.response.json();",
+            "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+            "pm.test('status es booleano true', () => pm.expect(body.status).to.be.a('boolean').and.to.equal(true));",
+            "pm.test('estado REGISTRADO', () => pm.expect(body.data.estado).to.equal('REGISTRADO'));",
+            "pm.test('responde en menos de 500 ms (no espera al consumidor)', () => pm.expect(pm.response.responseTime).to.be.below(500));",
+            "pm.collectionVariables.set('pagoId', body.data.id);"
+          ] }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"referencia\": \"{{referencia}}\", \"valor\": 125000, \"medio\": \"transferencia\"}" },
+        "url": { "raw": "{{baseUrl}}/pagos", "host": ["{{baseUrl}}"], "path": ["pagos"] }
+      }
+    },
+    {
+      "name": "2. Registrar pago inválido",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [
+            "const body = pm.response.json();",
+            "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+            "pm.test('status es booleano false', () => pm.expect(body.status).to.be.a('boolean').and.to.equal(false));",
+            "pm.test('mensaje', () => pm.expect(body.message).to.equal('Datos del pago inválidos'));"
+          ] }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"referencia\": \"\", \"valor\": -500, \"medio\": \"bitcoin\"}" },
+        "url": { "raw": "{{baseUrl}}/pagos", "host": ["{{baseUrl}}"], "path": ["pagos"] }
+      }
+    },
+    {
+      "name": "3. Consultar pago (inmediatamente)",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [
+            "const body = pm.response.json();",
+            "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+            "pm.test('status true', () => pm.expect(body.status).to.equal(true));",
+            "console.log('Estado inmediato:', body.data.estado);"
+          ] }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/pagos/{{pagoId}}", "host": ["{{baseUrl}}"], "path": ["pagos", "{{pagoId}}"] }
+      }
+    },
+    {
+      "name": "4. Consultar pago (pasados 10 segundos)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": { "type": "text/javascript", "exec": [
+            "// Espera 10 s antes de enviar la consulta",
+            "setTimeout(() => {}, 10000);"
+          ] }
+        },
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [
+            "const body = pm.response.json();",
+            "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+            "pm.test('estado PROCESADO', () => pm.expect(body.data.estado).to.equal('PROCESADO'));",
+            "pm.test('tiene registro de procesamiento', () => pm.expect(body.data.procesamiento).to.not.equal(null));"
+          ] }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/pagos/{{pagoId}}", "host": ["{{baseUrl}}"], "path": ["pagos", "{{pagoId}}"] }
+      }
+    },
+    {
+      "name": "5. Consultar pago inexistente",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [
+            "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+            "pm.test('status false', () => pm.expect(pm.response.json().status).to.equal(false));"
+          ] }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/pagos/999999", "host": ["{{baseUrl}}"], "path": ["pagos", "999999"] }
+      }
+    },
+    {
+      "name": "6. Registrar pago que falla (caso 3)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": { "type": "text/javascript", "exec": [
+            "pm.collectionVariables.set('referenciaFalla', 'FALLA-' + Date.now());"
+          ] }
+        },
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [
+            "const body = pm.response.json();",
+            "pm.test('la API lo registra igual (el fallo ocurre después, en el consumidor)', () => pm.expect(body.status).to.equal(true));",
+            "pm.collectionVariables.set('pagoFallaId', body.data.id);"
+          ] }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"referencia\": \"{{referenciaFalla}}\", \"valor\": 50000, \"medio\": \"tarjeta\"}" },
+        "url": { "raw": "{{baseUrl}}/pagos", "host": ["{{baseUrl}}"], "path": ["pagos"] }
+      }
+    },
+    {
+      "name": "7. Listar pagos en estado REGISTRADO",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/pagos?estado=REGISTRADO", "host": ["{{baseUrl}}"], "path": ["pagos"], "query": [{ "key": "estado", "value": "REGISTRADO" }] }
+      }
+    }
+  ]
+}

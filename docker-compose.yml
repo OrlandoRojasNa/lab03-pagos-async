@@ -1,0 +1,100 @@
+# Taller N.º 3 - Procesamiento asíncrono de eventos
+# Levantar todo:   docker compose up -d --build
+name: lab03-pagos
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pagos_db
+      MYSQL_USER: pagos
+      MYSQL_PASSWORD: pagos
+      TZ: America/Bogota
+    command: ["--default-time-zone=-05:00"]
+    ports:
+      - "3307:3306"   # opcional: para conectarse con un cliente gráfico desde el equipo
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-upagos", "-ppagos"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  rabbitmq:
+    image: rabbitmq:4.1-management-alpine
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672" # panel de administración: http://localhost:15672 (guest / guest)
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    environment: &entorno
+      TZ: America/Bogota
+      DB_HOST: mysql          # dentro de la red de Docker se usa el nombre del servicio
+      DB_PORT: 3306
+      DB_USER: pagos
+      DB_PASSWORD: pagos
+      DB_NAME: pagos_db
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      RABBITMQ_QUEUE: pagos.registrados
+    ports:
+      - "3000:3000"
+    depends_on:
+      mysql:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    restart: unless-stopped
+
+  consumer:
+    build:
+      context: .
+      dockerfile: consumer/Dockerfile
+    environment:
+      <<: *entorno
+      # Duración de la acción. Caso 2: poner ambos en 15000 (ver README).
+      PROCESO_MIN_MS: ${PROCESO_MIN_MS:-3000}
+      PROCESO_MAX_MS: ${PROCESO_MAX_MS:-5000}
+      PREFIJO_FALLO: FALLA
+    volumes:
+      - comprobantes:/app/comprobantes   # ver: docker compose exec consumer ls comprobantes
+    depends_on:
+      mysql:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    restart: unless-stopped
+
+  # Herramienta de medición (no forma parte de los cuatro servicios; solo se
+  # ejecuta a demanda):  docker compose run --rm medicion
+  medicion:
+    image: node:22-alpine
+    profiles: ["herramientas"]
+    working_dir: /herramientas
+    environment:
+      TZ: America/Bogota
+      API_URL: http://api:3000
+    volumes:
+      - ./herramientas:/herramientas:ro
+      - ./resultados:/resultados
+    entrypoint: ["node", "medicion.js"]
+    depends_on:
+      - api
+
+volumes:
+  mysql_data:
+  rabbitmq_data:
+  comprobantes:
