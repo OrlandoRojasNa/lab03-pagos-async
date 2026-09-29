@@ -22,13 +22,13 @@ services:
       interval: 5s
       timeout: 5s
       retries: 30
+    restart: unless-stopped
 
   rabbitmq:
     image: rabbitmq:4.1-management-alpine
     hostname: rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672" # panel de administración: http://localhost:15672 (guest / guest)
+      - "${RABBITMQ_PANEL_PORT:-15672}:15672" # panel de administración: http://localhost:15672 (guest / guest)
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
@@ -36,6 +36,7 @@ services:
       interval: 5s
       timeout: 10s
       retries: 30
+    restart: unless-stopped
 
   api:
     build:
@@ -51,7 +52,7 @@ services:
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
       RABBITMQ_QUEUE: pagos.registrados
     ports:
-      - "3000:3000"
+      - "${API_PORT:-8000}:3000"   # API en el equipo: http://localhost:8000
     depends_on:
       mysql:
         condition: service_started

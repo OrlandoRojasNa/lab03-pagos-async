@@ -14,6 +14,8 @@ const DIR_COMPROBANTES = process.env.DIR_COMPROBANTES || '/app/comprobantes';
 
 let pool;
 
+const fechaLocal = (d) => `${d.toLocaleDateString('sv-SE', { timeZone: 'America/Bogota' })} ${hora(d)}`;
+
 const duracionAccion = () =>
   PROCESO_MIN_MS + Math.floor(Math.random() * (Math.max(PROCESO_MAX_MS, PROCESO_MIN_MS) - PROCESO_MIN_MS + 1));
 
@@ -36,8 +38,8 @@ async function generarComprobante(pago, tomado) {
     `Valor:             $ ${Number(pago.valor).toLocaleString('es-CO', { minimumFractionDigits: 2 })}`,
     `Medio de pago:     ${pago.medio}`,
     `Fecha de registro: ${pago.fecha_registro}`,
-    `Tomado de la cola: ${tomado.toISOString()}`,
-    `Emitido:           ${new Date().toISOString()}`,
+    `Tomado de la cola: ${fechaLocal(tomado)}`,
+    `Emitido:           ${fechaLocal(new Date())}`,
     '===========================================',
     '',
   ].join('\n');
