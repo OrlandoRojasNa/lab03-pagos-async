@@ -14,7 +14,7 @@ async function declararTopologia(canal) {
   await canal.bindQueue(COLA_FALLIDOS, DLX, '');
 
   // Cola quorum: durable, cuenta las entregas (x-delivery-count) y, tras
-  // 3 intentos fallidos, envía el mensaje a la cola de fallidos.
+  // 3 reintentos fallidos (4 entregas), envía el mensaje a la cola de fallidos.
   await canal.assertQueue(COLA, {
     durable: true,
     arguments: {

@@ -50,7 +50,7 @@ services:
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
       RABBITMQ_QUEUE: pagos.registrados
     ports:
-      - "3000:3000"
+      - "${API_PORT:-8000}:3000"   # API en el equipo: http://localhost:8000
     depends_on:
       mysql:
         condition: service_started

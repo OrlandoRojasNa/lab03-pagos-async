@@ -20,7 +20,7 @@ Registro de pagos en el que la API **guarda el pago y responde de inmediato**, y
 |---|---|---|
 | `mysql` | MySQL 8.4 | 3307 (opcional, para un cliente gráfico) |
 | `rabbitmq` | RabbitMQ 4.1 + panel de administración | **15672** (panel) |
-| `api` | Node.js 22 + Express | **3000** |
+| `api` | Node.js 22 + Express | **8000** (dentro de Docker escucha en el 3000) |
 | `consumer` | Node.js 22 | — |
 
 Todo corre en contenedores. En el equipo solo se usa Docker, Postman, el navegador y el editor.
@@ -50,8 +50,8 @@ Cuando aparezcan `[api] escuchando en el puerto 3000` y `[consumidor] esperando 
 
 | Qué | Dónde |
 |---|---|
-| API | http://localhost:3000/pagos |
-| Estado de la API | http://localhost:3000/salud |
+| API | http://localhost:8000/pagos |
+| Estado de la API | http://localhost:8000/salud |
 | Panel de RabbitMQ | http://localhost:15672 — usuario `guest`, clave `guest` |
 
 > **Si el puerto 15672 ya está ocupado** (por ejemplo, por el RabbitMQ del laboratorio N.º 2), apague ese entorno o publique el panel en otro puerto: `RABBITMQ_PANEL_PORT=15673 docker compose up -d --build` (en PowerShell: `$env:RABBITMQ_PANEL_PORT=15673; docker compose up -d --build`). El puerto AMQP 5672 no se publica en el equipo: la API y el consumidor llegan a RabbitMQ por la red interna de Docker.
@@ -102,7 +102,7 @@ Reglas de validación: `referencia` de 1 a 50 caracteres (letras, números, `-`,
 - **Acción:** genera un comprobante de pago en `/app/comprobantes/comprobante-000001.txt` (volumen `comprobantes`). Tarda deliberadamente entre 3 y 5 s (aleatorio).
 - En una sola transacción: `UPDATE pagos SET estado='PROCESADO'` + `INSERT INTO procesamientos`.
 - **El `ack` se envía al final**, solo si todo lo anterior salió bien. Si hay error, hace `nack` con reencolado: el mensaje vuelve a la cola y el pago sigue `REGISTRADO`.
-- La cola es de tipo *quorum* con `x-delivery-limit = 3`: tras 3 intentos fallidos, RabbitMQ mueve el mensaje a `pagos.registrados.fallidos`. En ningún caso se pierde.
+- La cola es de tipo *quorum* con `x-delivery-limit = 3`: tras el intento original y 3 reintentos fallidos (4 entregas), RabbitMQ mueve el mensaje a `pagos.registrados.fallidos`. En ningún caso se pierde.
 - Si recibe un mensaje de un pago que ya está `PROCESADO` (entrega repetida), lo descarta sin procesarlo dos veces.
 - En el log muestra el id del pago, la hora en que lo **tomó** de la cola y la hora en que **terminó**:
 
@@ -206,13 +206,13 @@ Para volver a 3–5 s: en PowerShell `Remove-Item Env:PROCESO_MIN_MS, Env:PROCES
 Cualquier pago cuya referencia empiece por **`FALLA`** provoca un error dentro del consumidor a mitad de la acción (petición 6 de Postman, o):
 
 ```bash
-curl -X POST http://localhost:3000/pagos -H "Content-Type: application/json" -d "{\"referencia\":\"FALLA-0001\",\"valor\":50000,\"medio\":\"tarjeta\"}"
+curl -X POST http://localhost:8000/pagos -H "Content-Type: application/json" -d "{\"referencia\":\"FALLA-0001\",\"valor\":50000,\"medio\":\"tarjeta\"}"
 ```
 
 Lo que se observa:
 
-- Log: `ERROR ... (intento 1)`, `el mensaje se devuelve a la cola; el pago sigue REGISTRADO`, y lo mismo en los intentos 2 y 3.
-- Tras el tercer intento, `rabbitmqctl list_queues` muestra **1 mensaje en `pagos.registrados.fallidos`**: no se perdió.
+- Log: `ERROR ... (intento 1)`, `el mensaje se devuelve a la cola; el pago sigue REGISTRADO`, y lo mismo en los intentos 2, 3 y 4.
+- Tras el cuarto intento, `rabbitmqctl list_queues` muestra **1 mensaje en `pagos.registrados.fallidos`**: no se perdió.
 - `SELECT * FROM pagos WHERE referencia LIKE 'FALLA%'` → sigue en `REGISTRADO`, y no hay fila en `procesamientos`.
 - En el panel de RabbitMQ → cola `pagos.registrados.fallidos` → **Get messages** se puede ver el mensaje con `{"pagoId": ...}`.
 
@@ -222,7 +222,7 @@ Variante (caída a mitad de proceso): registrar un pago normal y, antes de que p
 
 ## 7. Postman
 
-Importar [postman/Lab03-Pagos-Async.postman_collection.json](postman/Lab03-Pagos-Async.postman_collection.json). La variable `baseUrl` apunta a `http://localhost:3000`.
+Importar [postman/Lab03-Pagos-Async.postman_collection.json](postman/Lab03-Pagos-Async.postman_collection.json). La variable `baseUrl` apunta a `http://localhost:8000`.
 
 1. **Registrar pago válido** → guarda el `id` en la variable `pagoId`.
 2. **Registrar pago inválido** → `status: false`.

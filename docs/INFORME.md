@@ -46,7 +46,7 @@ Obtenida con `docker compose run --rm medicion` (20 pagos seguidos, acción del 
 
 | Evidencia | Captura |
 |---|---|
-| Log del consumidor: error en los intentos 1, 2 y 3 | `evidencias/caso3-log-consumidor.png` |
+| Log del consumidor: error en los intentos 1 a 4 | `evidencias/caso3-log-consumidor.png` |
 | Mensaje en `pagos.registrados.fallidos` (no se perdió) | `evidencias/caso3-cola.png` |
 | Pago `FALLA-...` en estado `REGISTRADO`, sin fila en `procesamientos` | `evidencias/caso3-pagos.png` |
 
