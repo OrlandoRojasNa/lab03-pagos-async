@@ -149,7 +149,7 @@ Como mucho, se podría declarar un plazo **condicionado** para el procesamiento.
 | Parte del taller | Qué hizo la IA | Qué hicimos nosotros |
 |---|---|---|
 | Diseño y código | Escribió la API (Node.js/Express), el consumidor, el script SQL, los Dockerfiles, el `docker-compose.yml` y la herramienta de medición | Elegimos el lenguaje (Node.js), pedimos cada parte y revisamos el código |
-| Repositorio | Creó el repositorio en GitHub, invitó a la compañera como colaboradora y preparó los commits y el pull request | El merge del pull request lo hacemos nosotros |
+| Repositorio | Creó el repositorio en GitHub, invitó a la compañera como colaboradora y preparó los commits y el pull request | Hicimos el merge del pull request |
 | Puesta en marcha | Levantó el entorno en Docker y corrigió problemas del equipo: el puerto 3000 reservado por Windows, el choque de puertos con el laboratorio N.º 2 y el reinicio de los contenedores | Reportamos los errores que aparecían en nuestras pruebas |
 | Postman | Creó la colección y explicó cómo importarla y ejecutarla | Importamos la colección, ejecutamos las peticiones y tomamos las capturas |
 | Medición y casos 1 y 3 | Dio las instrucciones y los comandos, y revisó que las capturas mostraran lo correcto | Ejecutamos los comandos y tomamos las capturas |
