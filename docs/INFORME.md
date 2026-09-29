@@ -37,18 +37,36 @@ Datos adicionales: tiempo mínimo de respuesta 16,14 ms; los 20 registros se res
 | Respuestas de la API con el consumidor apagado | `evidencias/caso1-api.png` |
 | Cola `pagos.registrados` con 5 mensajes *ready* y 0 consumidores | `evidencias/caso1-cola.png` |
 | Tabla `pagos` con los 5 en `REGISTRADO` | `evidencias/caso1-pagos-registrado.png` |
-| Log del consumidor al levantarlo, procesando los 5 | `evidencias/caso1-log-consumidor.png` |
-| Tabla `pagos` con los 5 en `PROCESADO` y cola en 0 | `evidencias/caso1-pagos-procesado.png` |
+| Log del consumidor al levantarlo, procesando los 5 | `evidencias/caso1-log-consumidor.png` y `evidencias/caso1-log-final.png` |
+| Tabla `pagos` con los 5 en `PROCESADO` | `evidencias/caso1-pagos-procesado.png` |
+| Cola `pagos.registrados` en 0 al terminar | `evidencias/caso1-cola-final.png` |
 
 ### Caso 2 — Acción de 15 s
 
+Se fijó la acción del consumidor en 15 s (`PROCESO_MIN_MS=PROCESO_MAX_MS=15000`) y se repitió la medición de 20 pagos. Informe: `resultados/caso2-15s-2026-09-29T21-00-50-371Z.md`.
+
 | Medida | Acción 3–5 s | Acción 15 s |
 |---|---|---|
-| Respuesta de la API (media) | 19,89 ms | _pendiente_ |
-| Respuesta de la API (máximo) | 30,93 ms | _pendiente_ |
-| Registro → procesamiento, primer pago | 4,50 s | _pendiente_ |
-| Registro → procesamiento, último pago | 77,14 s | _pendiente_ |
-| Total hasta los 20 en PROCESADO | 77,52 s | _pendiente_ |
+| Respuesta de la API (media) | 19,89 ms | 23,64 ms |
+| Respuesta de la API (máximo) | 30,93 ms | 90,69 ms |
+| Respuesta de la API (mínimo) | 16,14 ms | 15,31 ms |
+| Tiempo en responder los 20 registros | 0,40 s | 0,48 s |
+| Registro → procesamiento, primer pago | 4,50 s | 15,08 s |
+| Registro → procesamiento, último pago | 77,14 s | 300,39 s |
+| Total hasta los 20 en PROCESADO | 77,52 s | 300,82 s |
+
+El máximo de 90,69 ms corresponde a la **primera** petición de la corrida (primer registro después de que los contenedores se reiniciaran). Las otras 19 estuvieron entre 15,31 ms y 36,67 ms; sin esa primera, la media es 20,11 ms, prácticamente igual a la de 3–5 s.
+
+| Evidencia | Captura |
+|---|---|
+| Configuración del consumidor en 15 s | `evidencias/caso2-configuracion.png` |
+| Los 20 registros respondidos con 1 de 20 procesados | `evidencias/caso2-envio.png` |
+| Cola a mitad del proceso: 12 *ready*, 1 *unacked* | `evidencias/caso2-cola.png` |
+| Tabla `pagos` a mitad del proceso (8 PROCESADO, 12 REGISTRADO) | `evidencias/caso2-pagos-parcial.png` |
+| Log del consumidor: cada pago tarda 15,0 s | `evidencias/caso2-log-consumidor.png` |
+| Tabla final de la medición | `evidencias/caso2-tabla.png` |
+| Tabla `pagos` con los 20 en `PROCESADO` | `evidencias/caso2-pagos-procesado.png` |
+| Consumidor devuelto a 3–5 s | `evidencias/caso2-restaurado.png` |
 
 ### Caso 3 — Fallo al procesar
 
